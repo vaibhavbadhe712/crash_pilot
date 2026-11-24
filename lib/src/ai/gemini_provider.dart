@@ -84,17 +84,44 @@ class GeminiProvider implements AiProvider {
               if (m is Map) {
                 final name = (m['name'] as String? ?? '').replaceFirst('models/', '');
                 final methods = m['supportedGenerationMethods'] as List?;
+
+                // Ignore non-text, TTS, audio, or embedding models
+                if (name.contains('-tts') ||
+                    name.contains('audio') ||
+                    name.contains('embedding') ||
+                    name.contains('imagen')) {
+                  continue;
+                }
+
                 if (methods != null && methods.contains('generateContent')) {
                   valid.add(name);
                 }
               }
             }
-            if (valid.isNotEmpty) return valid;
+            if (valid.isNotEmpty) {
+              // Prioritize standard text flash and pro models
+              valid.sort((a, b) {
+                final aScore = _modelPriority(a);
+                final bScore = _modelPriority(b);
+                return bScore.compareTo(aScore);
+              });
+              return valid;
+            }
           }
         }
       } catch (_) {}
     }
     return const [];
+  }
+
+  static int _modelPriority(String name) {
+    if (name == 'gemini-1.5-flash') return 100;
+    if (name == 'gemini-2.0-flash') return 95;
+    if (name.contains('1.5-flash')) return 90;
+    if (name.contains('2.0-flash')) return 85;
+    if (name == 'gemini-1.5-pro') return 80;
+    if (name.contains('pro')) return 70;
+    return 10;
   }
 
   Future<String> _callGemini(String prompt) async {
@@ -161,12 +188,12 @@ class GeminiProvider implements AiProvider {
             return text;
           }
 
-          if (response.statusCode == 404) {
+          if (response.statusCode == 404 || response.statusCode == 400) {
             lastException = HttpException(
-              'Gemini model $candidate not found on $version (404)',
+              'Gemini model $candidate returned ${response.statusCode}: ${response.body}',
               uri: url,
             );
-            continue; // try next version or model
+            continue; // try next candidate model
           }
 
           throw HttpException(
@@ -174,7 +201,8 @@ class GeminiProvider implements AiProvider {
             uri: url,
           );
         } catch (e) {
-          if (e is HttpException && e.message.contains('404')) {
+          if (e is HttpException &&
+              (e.message.contains('404') || e.message.contains('400'))) {
             lastException = e;
             continue;
           }

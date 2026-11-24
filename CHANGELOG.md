@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ---
 
+## [1.0.4] - 2026-11-24
+
+### Fixed
+- Filtered out non-text models (such as audio, TTS, and embedding models like `gemini-2.5-flash-preview-tts`) during dynamic model discovery.
+- Prioritized standard text generation models (`gemini-1.5-flash`, `gemini-2.0-flash`, `gemini-1.5-pro`).
+- Added graceful fallback on HTTP 400 (modality mismatches) to try subsequent candidate models.
+
+---
+
 ## [1.0.3] - 2026-11-24
 
 ### Fixed
