@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ---
 
+## [1.0.2] - 2026-11-24
+
+### Fixed
+- Fixed Gemini API 404 by defaulting to `gemini-1.5-flash` with multi-model automatic fallback.
+- Improved stack trace unfolding for inline/single-line crash inputs.
+- Enhanced framework frame detection to ensure user-space files are prioritized.
+
+---
+
 ## [1.0.1] - 2026-11-24
 
 ### Fixed

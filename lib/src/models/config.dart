@@ -25,7 +25,7 @@ class CrashPilotConfig {
     this.geminiApiKey,
     this.anthropicApiKey,
     this.openaiApiKey,
-    this.geminiModel = 'gemini-1.5-pro',
+    this.geminiModel = 'gemini-1.5-flash',
     this.claudeModel = 'claude-3-5-sonnet-20241022',
     this.openaiModel = 'gpt-4o',
     this.autoShorebirdPatch = false,

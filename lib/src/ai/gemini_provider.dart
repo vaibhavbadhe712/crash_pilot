@@ -16,7 +16,7 @@ class GeminiProvider implements AiProvider {
 
   GeminiProvider({
     required this.apiKey,
-    this.model = 'gemini-1.5-pro',
+    this.model = 'gemini-1.5-flash',
     http.Client? client,
   }) : _client = client ?? http.Client();
 
@@ -68,56 +68,89 @@ class GeminiProvider implements AiProvider {
   }
 
   Future<String> _callGemini(String prompt) async {
-    final url = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
-    );
+    // List of candidate models to try in order
+    final candidateModels = <String>{
+      model,
+      'gemini-1.5-flash',
+      'gemini-2.0-flash',
+      'gemini-1.5-pro-latest',
+      'gemini-pro',
+    }.toList();
 
-    final requestBody = jsonEncode({
-      'system_instruction': {
-        'parts': [
-          {'text': PromptTemplates.systemPrompt}
-        ]
-      },
-      'contents': [
-        {
-          'parts': [
-            {'text': prompt}
-          ]
-        }
-      ],
-      'generationConfig': {
-        'temperature': 0.1,
-        'responseMimeType': 'application/json',
-      }
-    });
+    HttpException? lastException;
 
-    final response = await _client.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: requestBody,
-    );
-
-    if (response.statusCode != 200) {
-      throw HttpException(
-        'Gemini API error (${response.statusCode}): ${response.body}',
-        uri: url,
+    for (final candidate in candidateModels) {
+      final url = Uri.parse(
+        'https://generativelanguage.googleapis.com/v1beta/models/$candidate:generateContent?key=$apiKey',
       );
+
+      final requestBody = jsonEncode({
+        'system_instruction': {
+          'parts': [
+            {'text': PromptTemplates.systemPrompt}
+          ]
+        },
+        'contents': [
+          {
+            'parts': [
+              {'text': prompt}
+            ]
+          }
+        ],
+        'generationConfig': {
+          'temperature': 0.1,
+          'responseMimeType': 'application/json',
+        }
+      });
+
+      try {
+        final response = await _client.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: requestBody,
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body) as Map<String, dynamic>;
+          final candidates = data['candidates'] as List?;
+          if (candidates == null || candidates.isEmpty) {
+            throw StateError('Gemini API returned no candidates');
+          }
+
+          final content = candidates.first['content'] as Map<String, dynamic>?;
+          final parts = content?['parts'] as List?;
+          final text = parts?.first?['text'] as String?;
+
+          if (text == null || text.trim().isEmpty) {
+            throw StateError('Gemini API returned empty text');
+          }
+
+          return text;
+        }
+
+        // If 404, try next candidate model
+        if (response.statusCode == 404) {
+          lastException = HttpException(
+            'Gemini model $candidate not found (404)',
+            uri: url,
+          );
+          continue;
+        }
+
+        throw HttpException(
+          'Gemini API error (${response.statusCode}): ${response.body}',
+          uri: url,
+        );
+      } catch (e) {
+        if (e is HttpException && e.message.contains('404')) {
+          lastException = e;
+          continue;
+        }
+        rethrow;
+      }
     }
 
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
-    final candidates = data['candidates'] as List?;
-    if (candidates == null || candidates.isEmpty) {
-      throw StateError('Gemini API returned no candidates');
-    }
-
-    final content = candidates.first['content'] as Map<String, dynamic>?;
-    final parts = content?['parts'] as List?;
-    final text = parts?.first?['text'] as String?;
-
-    if (text == null || text.trim().isEmpty) {
-      throw StateError('Gemini API returned empty text');
-    }
-
-    return text;
+    throw lastException ??
+        HttpException('Failed to call Gemini API across all models');
   }
 }

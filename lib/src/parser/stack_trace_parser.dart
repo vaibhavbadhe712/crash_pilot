@@ -24,9 +24,15 @@ class StackTraceParser {
     List<String> breadcrumbs = const [],
     String source = 'manual',
   }) {
-    final combined = rawStackTrace != null && rawStackTrace.isNotEmpty
+    var combined = rawStackTrace != null && rawStackTrace.isNotEmpty
         ? '$rawException\n$rawStackTrace'
         : rawException;
+
+    // Unfold any inline/collapsed frames so each '#<num>' is guaranteed its own line
+    combined = combined.replaceAllMapped(
+      RegExp(r'(?<!\n)(#\d+\s+)'),
+      (m) => '\n${m[1]}',
+    );
 
     final lines = combined.split('\n');
     String exceptionType = 'UnknownException';
@@ -139,15 +145,20 @@ class StackTraceParser {
 
   /// Determines whether a frame URI belongs to application user code rather than SDK/framework.
   static bool _isUserCode(String uri) {
-    if (uri.startsWith('dart:')) return false;
-    if (uri.startsWith('package:flutter/')) return false;
-    if (uri.startsWith('package:flutter_test/')) return false;
+    if (uri.startsWith('dart:') || uri.contains('dart:')) return false;
+    if (uri.startsWith('package:flutter/') || uri.contains('package:flutter/')) return false;
+    if (uri.startsWith('package:flutter_test/') || uri.contains('package:flutter_test/')) return false;
     if (uri.contains('/.pub-cache/')) return false;
     return true;
   }
 
   /// Normalizes package: or file: URIs into relative workspace file paths (e.g. `lib/...`).
   static String _normalizeFilePath(String uri) {
+    if (uri.startsWith('package:flutter/') ||
+        uri.startsWith('package:flutter_test/') ||
+        uri.startsWith('dart:')) {
+      return uri;
+    }
     if (uri.startsWith('package:')) {
       // package:app_name/sub/file.dart -> lib/sub/file.dart
       final slashIndex = uri.indexOf('/');
