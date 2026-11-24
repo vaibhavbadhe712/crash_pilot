@@ -228,6 +228,9 @@ Future<void> _handleHeal(ArgResults command) async {
           aiProvider: 'mock',
           dryRun: true,
           autoShorebirdPatch: false,
+          githubToken: config.githubToken,
+          githubRepo: config.githubRepo,
+          targetBranch: config.targetBranch,
         )
       : config;
 

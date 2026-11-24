@@ -77,7 +77,7 @@ ${verification.combinedLogs.split('\n').take(12).join('\n')}
 ```
 
 ---
-*Generated automatically by [CrashPilot](https://github.com/welvors/crash_pilot) — Autonomous Hot-Patch Bot for Flutter.*
+*Generated automatically by [CrashPilot](https://github.com/vaibhavbadhe712/crash_pilot) — Autonomous Hot-Patch Bot for Flutter.*
 ''';
   }
 
@@ -96,19 +96,32 @@ ${verification.combinedLogs.split('\n').take(12).join('\n')}
       verification: verification,
     );
 
-    final title = 'fix(auto): resolve ${crash.exceptionType} in ${p.basename(crash.culpritFile)}';
+    final title =
+        'fix(auto): resolve ${crash.exceptionType} in ${p.basename(crash.culpritFile)}';
 
-    // If GitHub Token and Repo are configured, attempt REST API PR creation
     final token = config.githubToken;
     final repo = config.githubRepo;
+    final root = workspaceRoot ?? Directory.current.path;
 
     if (token != null && token.isNotEmpty && repo != null && repo.contains('/')) {
+      final headBranch = 'crashpilot/fix-${crash.id}';
+
+      // 1. Commit changes to branch and push to remote GitHub repo
+      await _commitAndPushBranch(
+        repo: repo,
+        token: token,
+        branch: headBranch,
+        title: title,
+        workspaceRoot: root,
+      );
+
+      // 2. Call GitHub API to create Pull Request
       final prResult = await _createGitHubPr(
         repo: repo,
         token: token,
         title: title,
         body: body,
-        headBranch: 'crashpilot/fix-${crash.id}',
+        headBranch: headBranch,
         baseBranch: config.targetBranch,
       );
       if (prResult != null) {
@@ -117,7 +130,6 @@ ${verification.combinedLogs.split('\n').take(12).join('\n')}
     }
 
     // Local report fallback
-    final root = workspaceRoot ?? Directory.current.path;
     final reportFile = File(p.join(root, 'CRASHPILOT_PR_REPORT.md'));
     reportFile.writeAsStringSync(body);
 
@@ -125,9 +137,46 @@ ${verification.combinedLogs.split('\n').take(12).join('\n')}
       prCreated: false,
       prUrl: reportFile.path,
       logs: [
-        'GitHub API credentials not set. Diagnostic PR report written to: ${reportFile.path}'
+        'GitHub credentials or PR creation not completed. Diagnostic report written to: ${reportFile.path}'
       ],
     );
+  }
+
+  Future<bool> _commitAndPushBranch({
+    required String repo,
+    required String token,
+    required String branch,
+    required String title,
+    required String workspaceRoot,
+  }) async {
+    try {
+      await Process.run('git', ['config', 'user.name', 'CrashPilot[bot]'],
+          workingDirectory: workspaceRoot);
+      await Process.run('git',
+          ['config', 'user.email', 'crashpilot-bot@users.noreply.github.com'],
+          workingDirectory: workspaceRoot);
+
+      await Process.run('git', ['checkout', '-b', branch],
+          workingDirectory: workspaceRoot);
+      await Process.run('git', ['add', '.'], workingDirectory: workspaceRoot);
+      await Process.run('git', ['commit', '-m', title, '--allow-empty'],
+          workingDirectory: workspaceRoot);
+
+      final authUrl = 'https://x-access-token:$token@github.com/$repo.git';
+      final pushRes = await Process.run(
+        'git',
+        ['push', authUrl, branch, '--force'],
+        workingDirectory: workspaceRoot,
+      );
+
+      if (pushRes.exitCode != 0) {
+        stdout.writeln('Git push notice: ${pushRes.stderr}');
+      }
+      return pushRes.exitCode == 0;
+    } catch (e) {
+      stdout.writeln('Notice during branch commit/push: $e');
+      return false;
+    }
   }
 
   Future<DispatchResult?> _createGitHubPr({
@@ -143,7 +192,7 @@ ${verification.combinedLogs.split('\n').take(12).join('\n')}
       final response = await _client.post(
         url,
         headers: {
-          'Authorization': 'token $token',
+          'Authorization': 'Bearer $token',
           'Accept': 'application/vnd.github.v3+json',
           'Content-Type': 'application/json',
         },
@@ -159,14 +208,19 @@ ${verification.combinedLogs.split('\n').take(12).join('\n')}
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final htmlUrl = data['html_url'] as String?;
         final number = data['number'] as int?;
+        stdout.writeln('🎉 [GitHub PR] Created successfully: $htmlUrl');
         return DispatchResult(
           prCreated: true,
           prUrl: htmlUrl,
           prNumber: number,
           logs: ['Pull Request created successfully: $htmlUrl'],
         );
+      } else {
+        stdout.writeln('GitHub PR API notice (${response.statusCode}): ${response.body}');
       }
-    } catch (_) {}
+    } catch (e) {
+      stdout.writeln('Error creating GitHub PR: $e');
+    }
     return null;
   }
 }

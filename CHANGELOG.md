@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ---
 
+## [1.0.8] - 2026-11-24
+
+### Fixed
+- Automated git branch creation and push (`git checkout -b` & `git push`) before creating Pull Request via GitHub REST API.
+- Fixed dry-run mode retaining GitHub credentials and target branch for PR dispatch testing.
+- Added detailed GitHub API response diagnostics for PR creation.
+
+---
+
 ## [1.0.7] - 2026-11-24
 
 ### Added
