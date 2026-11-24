@@ -55,7 +55,7 @@ Respond with ONLY a raw JSON object with this exact structure:
   "culprit_file": "${crash.culpritFile}",
   "original_snippet": "The EXACT contiguous string in the file to be replaced (must match whitespace exactly)",
   "replacement_snippet": "The drop-in replacement code (clean, defensive Dart 3)",
-  "regression_test_code": "Complete valid Dart test file code starting with import 'package:test/test.dart';",
+  "regression_test_code": "Complete valid Dart test file code starting with import 'package:flutter_test/flutter_test.dart';",
   "regression_test_path": "${astContext.associatedTestFile ?? 'test/generated_crash_test.dart'}"
 }
 ''';

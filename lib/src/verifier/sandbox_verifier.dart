@@ -79,7 +79,7 @@ class SandboxVerifier {
         ? (customFlutterPath ?? 'flutter')
         : (customDartPath ?? 'dart');
 
-    final args = ['analyze', '--fatal-infos', targetFile];
+    final args = ['analyze', '--no-fatal-infos', targetFile];
 
     try {
       return await Process.run(

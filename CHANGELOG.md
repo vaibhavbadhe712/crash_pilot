@@ -7,6 +7,17 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ---
 
+## [1.0.6] - 2026-11-24
+
+### Fixed
+- Added full support for HTTP 503 (Google high-demand spikes) and 500 across all Gemini candidate models.
+- Prioritized `gemini-2.0-flash` and `gemini-1.5-flash` ahead of `gemini-flash-latest`.
+- Implemented an automatic AST defensive guard fallback so if Google's external API is rate-limited or unavailable, CrashPilot still generates a valid, compilable patch and opens the PR without crashing.
+- Updated sandbox verifier to use `--no-fatal-infos` so pre-existing lints in target files don't fail verification.
+- Updated regression test templates to import `package:flutter_test/flutter_test.dart` for Flutter projects.
+
+---
+
 ## [1.0.5] - 2026-11-24
 
 ### Fixed

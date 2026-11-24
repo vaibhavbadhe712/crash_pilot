@@ -32,8 +32,13 @@ class MockAiProvider implements AiProvider {
       replacement = '$original // safe-guarded by CrashPilot';
     }
 
+    final importTestPkg = (astContext.filePath.contains('package:flutter') ||
+            astContext.filePath.contains('lib/'))
+        ? "import 'package:flutter_test/flutter_test.dart';"
+        : "import 'package:test/test.dart';";
+
     final testCode = '''
-import 'package:test/test.dart';
+$importTestPkg
 
 void main() {
   group('CrashPilot Regression Tests', () {
