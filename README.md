@@ -51,7 +51,7 @@ When a Flutter app crashes in production, it normally takes **24 to 72 hours** f
 ### 1. Installation
 Clone or add CrashPilot to your workspace:
 ```bash
-git clone https://github.com/welvors/crash_pilot.git
+git clone https://github.com/vaibhavbadhe712/crash_pilot.git
 cd crash_pilot
 dart pub get
 ```
