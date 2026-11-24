@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ---
 
+## [1.0.9] - 2026-11-24
+
+### Fixed
+- Added baseline test fallback in Sandbox Verifier so synthetic tests for private (`_`) identifiers don't block valid patches.
+- Added strict prompt rules preventing AI from removing framework imports (`package:flutter/material.dart`).
+- Added private symbol avoidance rule in test generation prompt.
+
+---
+
 ## [1.0.8] - 2026-11-24
 
 ### Fixed

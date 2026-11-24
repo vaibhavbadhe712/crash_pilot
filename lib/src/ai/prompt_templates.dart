@@ -15,7 +15,9 @@ STRICT RULES:
 - RULE 2: DART 3 IDIOMS. Use sound null-safety, safe navigation (`?.`), fallback defaults (`??`), pattern matching, and bounds checks.
 - RULE 3: NEVER use forced unwraps (`!`) on potentially null objects.
 - RULE 4: PRESERVE BEHAVIOR. Never alter unrelated business logic or public method signatures.
-- RULE 5: JSON OUTPUT ONLY. Respond with a single valid JSON object and NO surrounding Markdown or code fences.
+- RULE 5: NEVER MODIFY IMPORTS. Never remove, comment out, or change framework imports like `package:flutter/material.dart`.
+- RULE 6: PRIVATE SYMBOL RULE. In Dart, classes or methods starting with `_` (e.g. `_ChatScreenState`) are private and cannot be referenced in test files. In the test, only test public Widgets using `testWidgets` and `pumpWidget`, or test public models.
+- RULE 7: JSON OUTPUT ONLY. Respond with a single valid JSON object and NO surrounding Markdown or code fences.
 ''';
 
   /// Generates the initial user prompt for a crash.
