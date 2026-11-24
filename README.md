@@ -149,4 +149,4 @@ dart test
 ---
 
 ## 📄 License
-MIT License. Built by the Welvors AI Team.
+MIT License. See [LICENSE](LICENSE) for details.

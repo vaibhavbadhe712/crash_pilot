@@ -7,6 +7,14 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ---
 
+## [1.0.1] - 2026-11-24
+
+### Fixed
+- Removed incorrect team attribution from README license section.
+- Updated repository and homepage URLs to correct personal GitHub account.
+
+---
+
 ## [1.0.0] - 2026-11-24
 
 ### Added
