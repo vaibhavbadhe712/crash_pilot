@@ -1,10 +1,6 @@
 name: crash_pilot
-description: >-
-  Autonomous self-healing & Shorebird hot-patch bot for Flutter apps.
-  Ingests Sentry/Crashlytics crash reports, parses Dart AST, synthesizes
-  surgical AI fixes (Gemini, Claude, OpenAI), verifies via flutter analyze &
-  flutter test, and dispatches GitHub PRs + Shorebird OTA patches automatically.
-version: 1.0.6
+description: Autonomous self-healing & Shorebird hot-patch engine for Flutter apps with AST analysis and automated GitHub PR creation.
+version: 1.0.7
 repository: https://github.com/vaibhavbadhe712/crash_pilot
 homepage: https://github.com/vaibhavbadhe712/crash_pilot
 documentation: https://github.com/vaibhavbadhe712/crash_pilot/blob/main/README.md
@@ -19,7 +15,7 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  analyzer: ^6.2.0
+  analyzer: '>=6.2.0 <15.0.0'
   args: ^2.7.0
   http: ^1.2.0
   meta: ^1.12.0

@@ -7,6 +7,18 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ---
 
+## [1.0.7] - 2026-11-24
+
+### Added
+- Added `example/main.dart` demonstrating end-to-end crash ingestion, AST analysis, and patch synthesis.
+
+### Fixed
+- Shortened package description to adhere to pub.dev's 60-180 character limit (+10 pub points).
+- Expanded `analyzer` dependency range to `>=6.2.0 <15.0.0` for full Dart 3.x and analyzer 7.x-14.x compatibility (+10 pub points).
+- Made AST class name extraction compatible across both legacy and modern analyzer AST node schemas.
+
+---
+
 ## [1.0.6] - 2026-11-24
 
 ### Fixed

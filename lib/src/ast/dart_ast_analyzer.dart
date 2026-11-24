@@ -96,11 +96,30 @@ class DartAstAnalyzer {
         enclosingMethod ??= current.name?.lexeme ?? 'new';
         enclosingMemberNode ??= current;
       } else if (current is ClassDeclaration) {
-        enclosingClass ??= current.name.lexeme;
+        final dynamic c = current;
+        try {
+          enclosingClass ??= c.name?.lexeme;
+        } catch (_) {}
+        try {
+          enclosingClass ??= c.namePart?.typeName?.lexeme;
+        } catch (_) {}
       } else if (current is MixinDeclaration) {
-        enclosingClass ??= current.name.lexeme;
+        final dynamic m = current;
+        try {
+          enclosingClass ??= m.name?.lexeme;
+        } catch (_) {}
+        try {
+          enclosingClass ??= m.namePart?.typeName?.lexeme;
+        } catch (_) {}
       } else if (current is ExtensionDeclaration) {
-        enclosingClass ??= current.name?.lexeme ?? 'UnnamedExtension';
+        final dynamic e = current;
+        try {
+          enclosingClass ??= e.name?.lexeme;
+        } catch (_) {}
+        try {
+          enclosingClass ??= e.namePart?.typeName?.lexeme;
+        } catch (_) {}
+        enclosingClass ??= 'UnnamedExtension';
       }
       current = current.parent;
     }
