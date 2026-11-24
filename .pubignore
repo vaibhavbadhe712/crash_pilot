@@ -1,0 +1,8 @@
+# Files to exclude from pub.dev package upload
+SIMULATED_PR_REPORT.md
+CRASHPILOT_PR_REPORT.md
+crashpilot_history.json
+*.log
+.dart_tool/
+build/
+.env
