@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ---
 
+## [1.0.3] - 2026-11-24
+
+### Fixed
+- Added dynamic model discovery via `GET /models` endpoint for Gemini API.
+- Added dual `v1beta` and `v1` endpoint fallback support.
+- Merged system instruction into request contents for universal v1/v1beta compatibility.
+
+---
+
 ## [1.0.2] - 2026-11-24
 
 ### Fixed
