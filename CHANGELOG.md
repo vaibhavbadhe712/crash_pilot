@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ---
 
+## [1.0.5] - 2026-11-24
+
+### Fixed
+- Enforced strict `gemini-` prefix filtering so non-Gemini models (like `lyria` audio models) are completely excluded.
+- Added candidate fallback on HTTP 429 quota exhaustion to automatically attempt alternative Gemini models.
+- Cleaned model candidate strings to prevent double `models/` prefix in request URIs.
+
+---
+
 ## [1.0.4] - 2026-11-24
 
 ### Fixed

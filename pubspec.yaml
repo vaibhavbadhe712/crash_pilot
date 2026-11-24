@@ -4,7 +4,7 @@ description: >-
   Ingests Sentry/Crashlytics crash reports, parses Dart AST, synthesizes
   surgical AI fixes (Gemini, Claude, OpenAI), verifies via flutter analyze &
   flutter test, and dispatches GitHub PRs + Shorebird OTA patches automatically.
-version: 1.0.4
+version: 1.0.5
 repository: https://github.com/vaibhavbadhe712/crash_pilot
 homepage: https://github.com/vaibhavbadhe712/crash_pilot
 documentation: https://github.com/vaibhavbadhe712/crash_pilot/blob/main/README.md

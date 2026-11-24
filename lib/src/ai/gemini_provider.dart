@@ -67,7 +67,7 @@ class GeminiProvider implements AiProvider {
     );
   }
 
-  /// Discovers available models for this specific API key dynamically.
+  /// Discovers available Gemini text models for this specific API key.
   Future<List<String>> _discoverAvailableModels() async {
     for (final version in ['v1beta', 'v1']) {
       try {
@@ -82,14 +82,21 @@ class GeminiProvider implements AiProvider {
             final valid = <String>[];
             for (final m in list) {
               if (m is Map) {
-                final name = (m['name'] as String? ?? '').replaceFirst('models/', '');
+                var name = (m['name'] as String? ?? '');
+                if (name.startsWith('models/')) {
+                  name = name.substring(7);
+                }
                 final methods = m['supportedGenerationMethods'] as List?;
 
-                // Ignore non-text, TTS, audio, or embedding models
-                if (name.contains('-tts') ||
+                // ONLY accept models that start with 'gemini-'
+                if (!name.startsWith('gemini-')) continue;
+
+                // Reject non-text models (audio, tts, embedding, imagen)
+                if (name.contains('tts') ||
                     name.contains('audio') ||
                     name.contains('embedding') ||
-                    name.contains('imagen')) {
+                    name.contains('imagen') ||
+                    name.contains('realtime')) {
                   continue;
                 }
 
@@ -120,33 +127,40 @@ class GeminiProvider implements AiProvider {
     if (name.contains('1.5-flash')) return 90;
     if (name.contains('2.0-flash')) return 85;
     if (name == 'gemini-1.5-pro') return 80;
-    if (name.contains('pro')) return 70;
+    if (name.contains('1.5-pro')) return 75;
+    if (name.contains('pro')) return 50;
     return 10;
   }
 
   Future<String> _callGemini(String prompt) async {
-    // 1. First probe available models dynamically for this key
     final discovered = await _discoverAvailableModels();
 
-    // 2. Build candidate list prioritizing user choice, then discovered, then standards
+    var cleanModel = model;
+    if (cleanModel.startsWith('models/')) {
+      cleanModel = cleanModel.substring(7);
+    }
+
+    // Build candidate list with ONLY valid gemini models
     final candidateModels = <String>{
-      model,
+      cleanModel,
       ...discovered,
       'gemini-1.5-flash',
       'gemini-2.0-flash',
       'gemini-1.5-pro',
-      'gemini-pro',
-    }.toList();
+    }.where((m) => m.startsWith('gemini-')).toList();
 
     HttpException? lastException;
-
-    // Try both v1beta and v1 endpoints
     final apiVersions = ['v1beta', 'v1'];
 
     for (final candidate in candidateModels) {
+      // Clean candidate to prevent double 'models/' in URL
+      final cleanCandidate = candidate.startsWith('models/')
+          ? candidate.substring(7)
+          : candidate;
+
       for (final version in apiVersions) {
         final url = Uri.parse(
-          'https://generativelanguage.googleapis.com/$version/models/$candidate:generateContent?key=$apiKey',
+          'https://generativelanguage.googleapis.com/$version/models/$cleanCandidate:generateContent?key=$apiKey',
         );
 
         final requestBody = jsonEncode({
@@ -188,9 +202,12 @@ class GeminiProvider implements AiProvider {
             return text;
           }
 
-          if (response.statusCode == 404 || response.statusCode == 400) {
+          // If 404, 400 (modality/feature unsupported), or 429 (quota exceeded on this specific model), try next
+          if (response.statusCode == 404 ||
+              response.statusCode == 400 ||
+              response.statusCode == 429) {
             lastException = HttpException(
-              'Gemini model $candidate returned ${response.statusCode}: ${response.body}',
+              'Gemini model $cleanCandidate returned ${response.statusCode}: ${response.body}',
               uri: url,
             );
             continue; // try next candidate model
@@ -202,7 +219,9 @@ class GeminiProvider implements AiProvider {
           );
         } catch (e) {
           if (e is HttpException &&
-              (e.message.contains('404') || e.message.contains('400'))) {
+              (e.message.contains('404') ||
+                  e.message.contains('400') ||
+                  e.message.contains('429'))) {
             lastException = e;
             continue;
           }
